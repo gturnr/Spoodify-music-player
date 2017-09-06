@@ -5,7 +5,9 @@
 
 
 '''
+
 import sqlite3, getpass, os, time
+
 conn = sqlite3.connect('spoodify.db')
 c = conn.cursor()
 
@@ -14,7 +16,9 @@ global currentuser
 print("Spoodify - Music Streaming service")
 print("songs in our collection: ")
 
-#c.execute('''CREATE TABLE songs (name text, artist text, genre text, album text, length real, year smallint)''')
+c.execute('''CREATE TABLE IF NOT EXISTS songs (name text, artist text, genre text, album text, length real, year smallint)''')
+c.execute('''CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, fullname text, email text, username text, password text)''')
+#c.execute('''CREATE TABLE IF NOT EXISTS playlists (name text, artist text, genre text, album text, length real, year smallint)''')
 #c.execute("INSERT INTO songs VALUES ('Overjoyed','Bastille','Indie','Wild World',3.26, 2017)")
 #c.execute('DELETE FROM songs Where name=Overjoyed')
 c.execute('SELECT name FROM songs')
@@ -23,12 +27,11 @@ print (songs)
 
 conn.commit()
 
-conn.close()
-
 def cls():
     os.system('cls')
 
 def menu():
+    print("Welcome " + currentuser)
     print("Please select the service you would like:")
     print("(1) View all songs available")
     print("(2) Search for a song")
@@ -54,6 +57,7 @@ def login():
     menu()
 
 def signup():
+    global currentuser
     name = input("Please enter your full name: ")
     email = input("Please enter your email: ")
     username = input("Please enter your chosen username: ")
@@ -65,9 +69,13 @@ def signup():
         print("Passwords do not match")
         signup()
 
+
+    #save to db
     new_user = [name, email, username, password]
     print(new_user)
-    time.sleep(10)
+    currentuser = username
+    menu()
+    
     
     
 
@@ -78,3 +86,6 @@ if loginchoice == "1":
 
 elif loginchoice == "2":
     signup()
+
+
+conn.close()
