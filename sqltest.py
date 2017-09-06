@@ -33,30 +33,30 @@ def menu():
     print("(1) View all songs available")
     print("(2) Search for a song")
     print("(3) Create/view/edit a playlist")
-    option = raw_input()
+    option = input()
 
     if option == "1":
-        #list songs
+        pass
     elif option == "2":
-        
+        pass
     elif option == "3":
-
+        pass
     else:
         menu()
     
 
 def login():
     global currentuser
-    username = raw_input("Please enter your username: ")
+    username = input("Please enter your username: ")
     password = getpass.getpass("Please enter your password: ")
     #validate
     currentuser = username
     menu()
 
 def signup():
-    name = raw_input("Please enter your full name: ")
-    email = raw_input("Please enter your email: ")
-    username = raw_input("Please enter your chosen username: ")
+    name = input("Please enter your full name: ")
+    email = input("Please enter your email: ")
+    username = input("Please enter your chosen username: ")
     ##sql lookup
     password = getpass.getpass("Please enter your password: ")
     passwordcheck = getpass.getpass("Please re-enter your password: ")
@@ -71,11 +71,9 @@ def signup():
     
     
 
-loginchoice = str(raw_input("Would you like to login (1) or sign up (2): "))
-print (loginchoice)
+loginchoice = str(input("Would you like to login (1) or sign up (2): "))
 
 if loginchoice == "1":
-    print("yes")
     login()
 
 elif loginchoice == "2":
