@@ -5,7 +5,6 @@
 
 
 '''
-
 import sqlite3, getpass, os, time
 
 conn = sqlite3.connect('spoodify.db')
@@ -14,16 +13,12 @@ c = conn.cursor()
 global currentuser
 
 print("Spoodify - Music Streaming service")
-print("songs in our collection: ")
 
-c.execute('''CREATE TABLE IF NOT EXISTS songs (name text, artist text, genre text, album text, length real, year smallint)''')
-c.execute('''CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, fullname text, email text, username text, password text)''')
+c.execute('CREATE TABLE IF NOT EXISTS songs (id INTEGER PRIMARY KEY, name text, artist text, genre text, album text, length real, year smallint)')
+c.execute('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, fullname text, email text, username text, password text)')
 #c.execute('''CREATE TABLE IF NOT EXISTS playlists (name text, artist text, genre text, album text, length real, year smallint)''')
-#c.execute("INSERT INTO songs VALUES ('Overjoyed','Bastille','Indie','Wild World',3.26, 2017)")
-#c.execute('DELETE FROM songs Where name=Overjoyed')
-c.execute('SELECT name FROM songs')
-songs = c.fetchall()
-print (songs)
+#c.execute("INSERT INTO songs VALUES ('Overjoyed','Bastille','Indie','Wild World',3.26, 2017)"
+# http://www.last.fm/api
 
 conn.commit()
 
@@ -39,7 +34,11 @@ def menu():
     option = input()
 
     if option == "1":
-        pass
+        print("songs in our collection: ")
+        c.execute('SELECT * FROM songs')
+        songs = c.fetchall()
+        print (songs)
+        menu()
     elif option == "2":
         pass
     elif option == "3":
@@ -58,27 +57,75 @@ def login():
 
 def signup():
     global currentuser
-    name = input("Please enter your full name: ")
-    email = input("Please enter your email: ")
-    username = input("Please enter your chosen username: ")
-    ##sql lookup
-    password = getpass.getpass("Please enter your password: ")
+
+    def getName():
+        name = input("Please enter your full name: ")
+        if " " not in name:
+            print("Please enter your full name, including first and last name")
+            getName()
+        return name
+    
+    name = getName()
+
+    def getEmail():
+        email = str(input("Please enter your email: "))
+        if '@' not in email or '.' not in email:
+            print("Invalid email")
+            getEmail()
+        return email
+    
+    email = getEmail()
+
+    def getUsername():
+        username = input("Please enter your chosen username: ")
+        ##sql lookup
+        return username
+
+    username = getUsername()
+
+    def getPassword():
+        password = getpass.getpass("Please enter your chosen password, at leat 8 letters long and containing a symbol: ")
+        validsymbols = ['!','"','£','$','%','^','&','*','(',')','_','=','+','[','{','}',']',';',':','@','#',',','<','>','.','?','/']
+
+        if len(password) < 8:
+            print("Your chosen password is too short")
+            getPassword()
+            
+        else:  
+            i = 0
+            valid = False
+            while i < len(validsymbols):
+                if validsymbols[i] in password:
+                    valid = True
+                i += 1
+            
+            if valid == False:
+                print(" Password does not contain a Symbol")
+                getPassword()
+
+            else:
+                return password
+    
+    password = getPassword()
+    
     passwordcheck = getpass.getpass("Please re-enter your password: ")
     if password != passwordcheck:
-        cls()
         print("Passwords do not match")
-        signup()
-
+        getPassword()
 
     #save to db
     new_user = [name, email, username, password]
-    print(new_user)
+    c.execute('INSERT INTO users(fullname, email, username, password) VALUES(?,?,?,?)', (name, email, username, password))
+    conn.commit()
+    c.execute('SELECT password FROM users')
+    user = c.fetchall()
+    print (user)
+
     currentuser = username
     menu()
-    
-    
-    
 
+    
+    
 loginchoice = str(input("Would you like to login (1) or sign up (2): "))
 
 if loginchoice == "1":
@@ -86,6 +133,5 @@ if loginchoice == "1":
 
 elif loginchoice == "2":
     signup()
-
 
 conn.close()
