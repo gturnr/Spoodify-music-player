@@ -1,25 +1,14 @@
-'''
--features to add:
-    email validation
-    form validation
-
-
-'''
 import sqlite3, getpass, os, time
 
-logfile = open("log.txt", "a")
+global currentuser
 
 conn = sqlite3.connect('spoodify.db')
 c = conn.cursor()
-
-global currentuser
 
 print("Spoodify - Music Streaming service")
 
 c.execute('CREATE TABLE IF NOT EXISTS songs (id INTEGER PRIMARY KEY, name text, artist text, genre text, album text, length real, year smallint)')
 c.execute('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, fullname text, email text, username text, password text)')
-#c.execute('''CREATE TABLE IF NOT EXISTS playlists (name text, artist text, genre text, album text, length real, year smallint)''')
-#c.execute("INSERT INTO songs VALUES ('Overjoyed','Bastille','Indie','Wild World',3.26, 2017)"
 # http://www.last.fm/api
 
 conn.commit()
@@ -27,6 +16,9 @@ conn.commit()
 def logout():
     confirmation = input("Please confirm you want to logout(Y/N):")
     if confirmation.upper() == "Y":
+        logfile = open("log.txt", "a")
+        logfile.write(time.strftime("%d/%m/%Y") + " | " + time.strftime("%H:%M:%S") + " - user " + currentuser + "signed out \n")
+        logfile.close()
         cls()
         print("Logged out")
         greeting()
@@ -42,9 +34,11 @@ def logout():
         logout()
         
 def cls():
+    #add linux & Mac OS support
     os.system('cls')
 
 def menu():
+    #give function to options 2,3
     print("Welcome " + currentuser)
     print("Please select the service you would like:")
     print("(1) View all songs available")
@@ -67,6 +61,9 @@ def menu():
         menu()
     elif option == "4":
         logout()
+    elif option == "exit":
+        pass
+        
     else:
         menu()
         
@@ -74,9 +71,31 @@ def login():
     global currentuser
     username = input("Please enter your username: ")
     password = getpass.getpass("Please enter your password: ")
-    #validate
-    currentuser = username
-    menu()
+
+    c.execute('SELECT username FROM users')
+    currentusers = []
+    for row in c.fetchall():
+        currentusers.append(row[0])
+
+    if username in currentusers:
+        c.execute("SELECT password FROM users WHERE username=?", (username,))
+        searchResult = c.fetchall()
+        validatePswd = searchResult[0]
+        if password == validatePswd[0]:
+            currentuser = username
+            logfile = open("log.txt", "a")
+            logfile.write(time.strftime("%d/%m/%Y") + " | " + time.strftime("%H:%M:%S") + " - user " + currentuser + "signed in \n")
+            logfile.close()
+            menu()
+
+        else:
+            print("Invalid password")
+            greeting()
+
+    else:
+        print("Invalid login, please try again or signup")
+        greeting()
+        
 
 def signup():
     global currentuser
@@ -98,7 +117,6 @@ def signup():
 
         else:
             c.execute('SELECT email FROM users')
-            
             currentemails = []
             for row in c.fetchall():
                 currentemails.append(row[0])
@@ -152,18 +170,24 @@ def signup():
                 return password
     
     password = getPassword()
-    
-    passwordcheck = getpass.getpass("Please re-enter your password: ")
-    if password != passwordcheck:
-        print("Passwords do not match")
-        getPassword()
 
-    #save to db
+    def validatePassword(password):
+        passwordcheck = getpass.getpass("Please re-enter your password: ")
+        if password != passwordcheck:
+            print("Passwords do not match")
+            getPassword()
+            validatePassword()
+            
+    validatePassword(password)
+
     new_user = [name, email, username, password]
     c.execute('INSERT INTO users(fullname, email, username, password) VALUES(?,?,?,?)', (name, email, username, password))
     conn.commit()
 
     currentuser = username
+    logfile = open("log.txt", "a")
+    logfile.write(time.strftime(time.strftime("%d/%m/%Y") + " | " + "%H:%M:%S") + " - user " + currentuser + "registered successfully \n")
+    logfile.close()
     menu()
     
 def greeting(): 
@@ -180,5 +204,4 @@ def greeting():
         greeting()
 
 greeting()
-logfile.close()
 conn.close()
