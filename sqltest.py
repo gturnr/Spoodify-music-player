@@ -35,8 +35,12 @@ def logout():
         cls()
         print("returning to menu...")
         menu()
-        
 
+    else:
+        cls()
+        print("Please enter either Y or N")
+        logout()
+        
 def cls():
     os.system('cls')
 
@@ -65,8 +69,7 @@ def menu():
         logout()
     else:
         menu()
-    
-
+        
 def login():
     global currentuser
     username = input("Please enter your username: ")
@@ -95,11 +98,14 @@ def signup():
 
         else:
             c.execute('SELECT email FROM users')
+            
+            currentemails = []
             for row in c.fetchall():
-                print(row[0])
-                if chosenemail == row[0]:
-                    print("An account with this email already exists")
-                    getEmail()
+                currentemails.append(row[0])
+
+            if chosenemail in currentemails:
+                print("An account with this email already exists")
+                getEmail()
                     
             return chosenemail
     
@@ -109,12 +115,14 @@ def signup():
         chosenusername = input("Please enter your chosen username: ")
 
         c.execute('SELECT username FROM users')
+
+        currentusers = []
         for row in c.fetchall():
-            print(row[0])
-            if chosenusername == row[0]:
-                print("Username is taken")
-                getUsername()
-    
+            currentusers.append(row[0])
+
+        if chosenusername in currentusers:
+            print("Username is taken")
+            getUsername()
                 
         return chosenusername
 
@@ -157,7 +165,6 @@ def signup():
 
     currentuser = username
     menu()
-
     
 def greeting(): 
     loginchoice = str(input("Would you like to login (1) or sign up (2): "))
