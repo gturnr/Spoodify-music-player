@@ -7,6 +7,8 @@
 '''
 import sqlite3, getpass, os, time
 
+logfile = open("log.txt", "a")
+
 conn = sqlite3.connect('spoodify.db')
 c = conn.cursor()
 
@@ -22,6 +24,19 @@ c.execute('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, fullname te
 
 conn.commit()
 
+def logout():
+    confirmation = input("Please confirm you want to logout(Y/N):")
+    if confirmation.upper() == "Y":
+        cls()
+        print("Logged out")
+        greeting()
+        
+    elif confirmation.upper() == "N":
+        cls()
+        print("returning to menu...")
+        menu()
+        
+
 def cls():
     os.system('cls')
 
@@ -31,6 +46,7 @@ def menu():
     print("(1) View all songs available")
     print("(2) Search for a song")
     print("(3) Create/view/edit a playlist")
+    print("(4) Logout")
     option = input()
 
     if option == "1":
@@ -40,9 +56,13 @@ def menu():
         print (songs)
         menu()
     elif option == "2":
-        pass
+        print("Search")
+        menu()
     elif option == "3":
-        pass
+        print("Playlists")
+        menu()
+    elif option == "4":
+        logout()
     else:
         menu()
     
@@ -68,18 +88,35 @@ def signup():
     name = getName()
 
     def getEmail():
-        email = str(input("Please enter your email: "))
-        if '@' not in email or '.' not in email:
+        chosenemail = str(input("Please enter your email: "))
+        if '@' not in chosenemail or '.' not in chosenemail:
             print("Invalid email")
             getEmail()
-        return email
+
+        else:
+            c.execute('SELECT email FROM users')
+            for row in c.fetchall():
+                print(row[0])
+                if chosenemail == row[0]:
+                    print("An account with this email already exists")
+                    getEmail()
+                    
+            return chosenemail
     
     email = getEmail()
 
     def getUsername():
-        username = input("Please enter your chosen username: ")
-        ##sql lookup
-        return username
+        chosenusername = input("Please enter your chosen username: ")
+
+        c.execute('SELECT username FROM users')
+        for row in c.fetchall():
+            print(row[0])
+            if chosenusername == row[0]:
+                print("Username is taken")
+                getUsername()
+    
+                
+        return chosenusername
 
     username = getUsername()
 
@@ -117,21 +154,24 @@ def signup():
     new_user = [name, email, username, password]
     c.execute('INSERT INTO users(fullname, email, username, password) VALUES(?,?,?,?)', (name, email, username, password))
     conn.commit()
-    c.execute('SELECT password FROM users')
-    user = c.fetchall()
-    print (user)
 
     currentuser = username
     menu()
 
     
-    
-loginchoice = str(input("Would you like to login (1) or sign up (2): "))
+def greeting(): 
+    loginchoice = str(input("Would you like to login (1) or sign up (2): "))
 
-if loginchoice == "1":
-    login()
+    if loginchoice == "1":
+        login()
 
-elif loginchoice == "2":
-    signup()
+    elif loginchoice == "2":
+        signup()
 
+    else:
+        cls()
+        greeting()
+
+greeting()
+logfile.close()
 conn.close()
