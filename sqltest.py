@@ -7,7 +7,7 @@ c = conn.cursor()
 
 print("Spoodify - Music Streaming service")
 
-c.execute('CREATE TABLE IF NOT EXISTS songs (id INTEGER PRIMARY KEY, name text, artist text, genre text, album text, length real, year smallint)')
+c.execute('CREATE TABLE IF NOT EXISTS songs (id INTEGER PRIMARY KEY, name text, artist text, genre text, album text, length text, year smallint)')
 c.execute('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, fullname text, email text, username text, password text)')
 # http://www.last.fm/api
 
@@ -51,7 +51,8 @@ def menu():
         print("songs in our collection: ")
         c.execute('SELECT * FROM songs')
         songs = c.fetchall()
-        print (songs)
+        for row in songs:
+            print(row)
         menu()
     elif option == "2":
         print("Search")
