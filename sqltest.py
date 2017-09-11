@@ -7,8 +7,9 @@ c = conn.cursor()
 
 print("Spoodify - Music Streaming service")
 
-c.execute('CREATE TABLE IF NOT EXISTS songs (id INTEGER PRIMARY KEY, name text, artist text, genre text, album text, length text, year smallint)')
-c.execute('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, fullname text, email text, username text, password text)')
+c.execute('CREATE TABLE IF NOT EXISTS songs (id INTEGER PRIMARY KEY, name TEXT, artist TEXT, genre TEXT, album TEXT, length TEXT, year smallint)')
+c.execute('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, fullname TEXT, email TEXT, username TEXT, password TEXT)')
+c.execute('CREATE TABLE IF NOT EXISTS playlists (id INTEGER PRIMARY KEY, name TEXT, username TEXT, songs TEXT)')
 # http://www.last.fm/api
 
 conn.commit()
@@ -58,6 +59,27 @@ def searchSongs():
         print("Invalid")
         searchSongs()
     menu()
+
+def playlists():
+    choice = input("Do you wish to 1) create a new playlist, 2) view all your playlists, or 3) edit a playlist? ")
+    if choice == "1":
+        print("Create a playlist:")
+    elif choice == "2":
+        print("Your playlists:")
+        c.execute("SELECT * FROM playlists WHERE username=?", (currentuser))
+        for row in c.fetchall():
+            print(row)
+        playlistChoice = input("Please enter the playlist name to view all songs: ")
+        
+    elif choice == "3":
+        print("Edit your playlists: ")
+        print("Please select a playlist from below (or type back to return to menu):")
+        #list playlists by user
+    else:
+        print("Please select an option...")
+        playlists()
+
+    menu()
         
 
 def menu():
@@ -82,7 +104,7 @@ def menu():
         searchSongs()
         menu()
     elif option == "3":
-        print("Playlists")
+        playlists()
         menu()
     elif option == "4":
         logout()
