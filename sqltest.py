@@ -37,10 +37,32 @@ def cls():
     #add linux & Mac OS support
     os.system('cls')
 
+def searchSongs():
+    cls()
+    choice = input("Do you want to 1) search for song title, 2) search for artist, or 3) search for album? ")
+    if choice == "1":
+        songName = input("Enter song name: ")
+        c.execute("SELECT * FROM songs WHERE name=?", (songName))
+        print(c.fetchall())
+
+    if choice == "2":
+        artistName = input("Enter artist name: ")
+        c.execute("SELECT * FROM songs WHERE artist=?", (artistName))
+        print(c.fetchall())
+
+    if choice == "3":
+        albumName = input("Enter album name: ")
+        c.execute("SELECT * FROM songs WHERE album=?", (albumName))
+        print(c.fetchall())
+    else:
+        print("Invalid")
+        searchSongs()
+    menu()
+        
+
 def menu():
     #give function to options 2,3
-    print("Welcome " + currentuser)
-    print("Please select the service you would like:")
+    print(currentuser + " - Please select the service you would like:")
     print("(1) View all songs available")
     print("(2) Search for a song")
     print("(3) Create/view/edit a playlist")
@@ -48,14 +70,16 @@ def menu():
     option = input()
 
     if option == "1":
+        cls()
         print("songs in our collection: ")
-        c.execute('SELECT * FROM songs')
+        c.execute('SELECT * FROM songs ORDER BY artist')
         songs = c.fetchall()
         for row in songs:
-            print(row)
+            print(row[1] + " - " + row[4] + " | " + row[2] + " | " +str(row[6]))
+        print(" ")
         menu()
     elif option == "2":
-        print("Search")
+        searchSongs()
         menu()
     elif option == "3":
         print("Playlists")
@@ -168,18 +192,14 @@ def signup():
                 getPassword()
 
             else:
-                return password
+                passwordcheck = getpass.getpass("Please re-enter your password: ")
+                if password != passwordcheck:
+                    print("Passwords do not match")
+                    getPassword()
+                else:
+                    return password
     
     password = getPassword()
-
-    def validatePassword(password):
-        passwordcheck = getpass.getpass("Please re-enter your password: ")
-        if password != passwordcheck:
-            print("Passwords do not match")
-            getPassword()
-            validatePassword()
-            
-    validatePassword(password)
 
     new_user = [name, email, username, password]
     c.execute('INSERT INTO users(fullname, email, username, password) VALUES(?,?,?,?)', (name, email, username, password))
