@@ -80,7 +80,10 @@ def playlists():
         playlists()
 
     menu()
-        
+
+def settings():
+    print("settings")
+    menu()
 
 def menu():
     #give function to options 2,3
@@ -88,7 +91,8 @@ def menu():
     print("(1) View all songs available")
     print("(2) Search for a song")
     print("(3) Create/view/edit a playlist")
-    print("(4) Logout")
+    print("(4) Account settings")
+    print("(5) Logout")
     option = input()
 
     if option == "1":
@@ -104,9 +108,11 @@ def menu():
         searchSongs()
         menu()
     elif option == "3":
-        playlists()
+        print("Playlists")
         menu()
     elif option == "4":
+        settings()
+    elif option == "5":
         logout()
     elif option == "exit":
         pass
@@ -194,8 +200,9 @@ def signup():
     username = getUsername()
 
     def getPassword():
-        password = getpass.getpass("Please enter your chosen password, at leat 8 letters long and containing a symbol: ")
+        password = getpass.getpass("Please enter your chosen password, must contain a number, symbol and 8 characters: ")
         validsymbols = ['!','"','£','$','%','^','&','*','(',')','_','=','+','[','{','}',']',';',':','@','#',',','<','>','.','?','/']
+        validnumbers = ['0','1','2','3','4','5','6','7','8','9']
 
         if len(password) < 8:
             print("Your chosen password is too short")
@@ -214,12 +221,24 @@ def signup():
                 getPassword()
 
             else:
-                passwordcheck = getpass.getpass("Please re-enter your password: ")
-                if password != passwordcheck:
-                    print("Passwords do not match")
+                j = 0
+                containsNumber = False
+                while j< len(validnumbers):
+                    if validnumbers[j] in password:
+                        containsNumber = True
+                    j += 1
+
+                if containsNumber == False:
+                    print(" Password does not contain a Number")
                     getPassword()
+                
                 else:
-                    return password
+                    passwordcheck = getpass.getpass("Please re-enter your password: ")
+                    if password != passwordcheck:
+                        print("Passwords do not match")
+                        getPassword()
+                    else:
+                        return password
     
     password = getPassword()
 
