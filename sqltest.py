@@ -32,7 +32,12 @@ def logout():
         
 def cls():
     #add linux & Mac OS support
-    os.system('cls')
+    #os.system('cls')
+    #os.system('clear')
+    i = 0
+    while i < 2:
+        print("")
+        i += 1
 
 def noResults():
     print(" ")
@@ -91,10 +96,15 @@ def playlists():
         print("Create a playlist:")
     elif choice == "2":
         print("Your playlists:")
-        c.execute("SELECT * FROM playlists WHERE username=?", (currentuser))
+        c.execute("SELECT * FROM playlists WHERE username=?", (currentuser,))
+        userPlaylistNames = []
+        userPlaylistIDs = []
         for row in c.fetchall():
-            print(row)
+            userPlaylistNames.append(row[1])
+            userPlaylistIDs.append(row[0])
+            print(row[1])
         playlistChoice = input("Please enter the playlist name to view all songs: ")
+        
         
     elif choice == "3":
         print("Edit your playlists: ")
@@ -114,14 +124,16 @@ def settings():
     choice = input()
     if choice == "1":
         current = input("Please enter your current password: ")
-        if current == "df":
-            newpassword = input("Please enter your new password: ")
+        if current == "df": ###wrong
+            newpassword = input("Please enter your new password: ") ###validate
             checknewpassword = input("Please re-enter your new password: ")
             if newpassword != checknewpassword:
                 print("Passwords do not match.")
                 settings()
             else:
                 print("Savings changes")
+                c.execute('UPDATE users SET password = ? WHERE username = ?', (newpassword, currentuser))
+                print("done")
                 #save new pwd
         else:
             print("Incorrect password.")
@@ -130,6 +142,7 @@ def settings():
         print("Email")
     elif choice == "3":
         print("close account")
+        
     elif choice == "4":
         cls()
         menu()
