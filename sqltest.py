@@ -88,9 +88,17 @@ def searchSongs():
     menu()
 
 def playlists():
-    choice = input("Do you wish to 1) create a new playlist, 2) view all your playlists, or 3) edit a playlist? ")
+    choice = input("Do you wish to 1) create a new playlist, or 2) view all your playlists? ")
     if choice == "1":
         print("Create a playlist:")
+        c.execute('SELECT * FROM songs ORDER BY id')
+        songs = c.fetchall()
+        for row in songs:
+            print(row[0] + ") " + row[1] + " - " + row[4] + " | " + row[2] + " | " +str(row[6]))
+        print(" ")
+        print("Please a song number and press enter. When you have entered every song you wish to add type 'done' and hit enter")
+        
+        
     elif choice == "2":
         print("Your playlists:")
         c.execute("SELECT * FROM playlists WHERE username=?", (currentuser,))
@@ -102,11 +110,6 @@ def playlists():
             print(row[1])
         playlistChoice = input("Please enter the playlist name to view all songs: ")
         
-        
-    elif choice == "3":
-        print("Edit your playlists: ")
-        print("Please select a playlist from below (or type back to return to menu):")
-        #list playlists by user
     else:
         print("Please select an option...")
         playlists()
@@ -116,14 +119,13 @@ def settings():
     print("Account options:")
     print("1) Change your password")
     print("2) Change your email")
-    print("3) Close your account")
-    print("4) Return to main menu")
+    print("3) Return to main menu")
     choice = input()
     if choice == "1":
         usercheck = input("Please enter your current password: ")
         c.execute("SELECT password FROM users WHERE username=?", (currentuser,))
         currentPassword = c.fetchall()[0]
-        if usercheck == currentPassword[0]: ###wrong
+        if usercheck == currentPassword[0]:
             newpassword = getPassword()
             print("Savings changes...")
             c.execute('UPDATE users SET password = ? WHERE username = ?', (newpassword, currentuser))
@@ -133,14 +135,16 @@ def settings():
             print("Incorrect password.")
             settings()
     elif choice == "2":
-        print("Email")
+        newemail = getEmail()
+        print("Savings changes...")
+        c.execute('UPDATE users SET email = ? WHERE username = ?', (newemail, currentuser))
+        conn.commit()
+        print("done")
+  
     elif choice == "3":
-        print("close account")
-        ###drop entry
-        
-    elif choice == "4":
         cls()
         menu()
+        
     else:
         print("Invalid input")
         settings()
@@ -241,19 +245,8 @@ def getPassword():
                 else:
                     return password
 
-def signup():
-    global currentuser
-
-    def getName():
-        name = input("Please enter your full name: ")
-        if " " not in name:
-            print("Please enter your full name, including first and last name")
-            getName()
-        return name
-    name = getName()
-
-    def getEmail():
-        chosenemail = str(input("Please enter your email: "))
+def getEmail():
+        chosenemail = str(input("Please enter your chosen email: "))
         if '@' not in chosenemail or '.' not in chosenemail:
             print("Invalid email")
             getEmail()
@@ -269,6 +262,17 @@ def signup():
                 getEmail()
                     
             return chosenemail
+
+def signup():
+    global currentuser
+
+    def getName():
+        name = input("Please enter your full name: ")
+        if " " not in name:
+            print("Please enter your full name, including first and last name")
+            getName()
+        return name
+    name = getName()
     
     email = getEmail()
 
