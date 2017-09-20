@@ -34,10 +34,7 @@ def cls():
     #add linux & Mac OS support
     #os.system('cls')
     #os.system('clear')
-    i = 0
-    while i < 2:
-        print("")
-        i += 1
+    print(" ")
 
 def noResults():
     print(" ")
@@ -123,18 +120,15 @@ def settings():
     print("4) Return to main menu")
     choice = input()
     if choice == "1":
-        current = input("Please enter your current password: ")
-        if current == "df": ###wrong
-            newpassword = input("Please enter your new password: ") ###validate
-            checknewpassword = input("Please re-enter your new password: ")
-            if newpassword != checknewpassword:
-                print("Passwords do not match.")
-                settings()
-            else:
-                print("Savings changes")
-                c.execute('UPDATE users SET password = ? WHERE username = ?', (newpassword, currentuser))
-                print("done")
-                #save new pwd
+        usercheck = input("Please enter your current password: ")
+        c.execute("SELECT password FROM users WHERE username=?", (currentuser,))
+        currentPassword = c.fetchall()[0]
+        if usercheck == currentPassword[0]: ###wrong
+            newpassword = getPassword()
+            print("Savings changes...")
+            c.execute('UPDATE users SET password = ? WHERE username = ?', (newpassword, currentuser))
+            conn.commit()
+            print("done")
         else:
             print("Incorrect password.")
             settings()
@@ -142,6 +136,7 @@ def settings():
         print("Email")
     elif choice == "3":
         print("close account")
+        ###drop entry
         
     elif choice == "4":
         cls()
@@ -210,6 +205,42 @@ def login():
         greeting()
         
 
+def getPassword():
+    password = getpass.getpass("Please enter your chosen password, must contain a number, symbol and 8 characters: ")
+    validsymbols = ['!','"','$','%','^','&','*','(',')','_','=','+','[','{','}',']',';',':','@','#',',','<','>','.','?','/']
+    validnumbers = ['0','1','2','3','4','5','6','7','8','9']
+
+    if len(password) < 8:
+        print("Your chosen password is too short")
+        getPassword()
+    else:
+        i = 0
+        valid = False
+        while i < len(validsymbols):
+            if validsymbols[i] in password:
+                valid = True
+            i += 1
+        if valid == False:
+            print(" Password does not contain a Symbol")
+            getPassword()
+        else:
+            j = 0
+            containsNumber = False
+            while j< len(validnumbers):
+                if validnumbers[j] in password:
+                    containsNumber = True
+                j += 1
+            if containsNumber == False:
+                print(" Password does not contain a Number")
+                getPassword()
+            else:
+                passwordcheck = getpass.getpass("Please re-enter your password: ")
+                if password != passwordcheck:
+                    print("Passwords do not match")
+                    getPassword()
+                else:
+                    return password
+
 def signup():
     global currentuser
 
@@ -252,44 +283,9 @@ def signup():
             getUsername()    
         return chosenusername
     username = getUsername()
-
-    def getPassword():
-        password = getpass.getpass("Please enter your chosen password, must contain a number, symbol and 8 characters: ")
-        validsymbols = ['!','"','£','$','%','^','&','*','(',')','_','=','+','[','{','}',']',';',':','@','#',',','<','>','.','?','/']
-        validnumbers = ['0','1','2','3','4','5','6','7','8','9']
-
-        if len(password) < 8:
-            print("Your chosen password is too short")
-            getPassword()
-        else:  
-            i = 0
-            valid = False
-            while i < len(validsymbols):
-                if validsymbols[i] in password:
-                    valid = True
-                i += 1
-            if valid == False:
-                print(" Password does not contain a Symbol")
-                getPassword()
-            else:
-                j = 0
-                containsNumber = False
-                while j< len(validnumbers):
-                    if validnumbers[j] in password:
-                        containsNumber = True
-                    j += 1
-                if containsNumber == False:
-                    print(" Password does not contain a Number")
-                    getPassword()
-                else:
-                    passwordcheck = getpass.getpass("Please re-enter your password: ")
-                    if password != passwordcheck:
-                        print("Passwords do not match")
-                        getPassword()
-                    else:
-                        return password
-    
+    ###
     password = getPassword()
+    print(password)
     new_user = [name, email, username, password]
     c.execute('INSERT INTO users(fullname, email, username, password) VALUES(?,?,?,?)', (name, email, username, password))
     conn.commit()
