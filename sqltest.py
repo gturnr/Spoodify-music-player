@@ -111,15 +111,31 @@ def searchSongs():
 
 #playlists function
 def playlists():
-    choice = input("Do you wish to 1) create a new playlist, or 2) view all your playlists? ")
+    choice = input("Do you wish to 1) create a new playlist, 2) view all your playlists, or 3) return to menu? ")
     if choice == "1":
         #gets a user to create a  playlist
         print("Create a playlist:")
         def getPlaylistName():
             playlistname = input("Please enter a playlist name: ")
-            ##########validate name!!!!
-            return playlistname
+            #checks that the user didnt just hit enter or press space
+            if playlistname == '':
+                getPlaylistName()
+            else:
+                #gets all playlists names from the current user
+                c.execute('SELECT name FROM playlists WHERE username =?', (currentuser,))
+                currentplaylists = []
+                #adds all current playlists from the user to a local list
+                for row in c.fetchall():
+                    currentplaylists.append(row[0])
+                #checks if the chosen playlist name is already in the list
+                if playlistname in currentplaylists:
+                    print("A playlist with that name already exists.")
+                    getPlaylistName()
+                else:
+                    return playlistname
+            
         playlistname = getPlaylistName()
+        print("Playlist successfully named " + str(playlistname))
         
         #gets all songs from the songs table
         c.execute('SELECT * FROM songs ORDER BY id')
@@ -133,41 +149,77 @@ def playlists():
         print(" ")
         print("Please a song number and press enter. When you have entered every song you wish to add type 'done' and hit enter")
         def songSelector():
-            print(validIDs)
             song = input()
             if song == "done":
                 pass
-            elif int(song) in validIDs:
-                playlistSongs.append(song)
-                c.execute("SELECT name FROM songs WHERE id=?", (song,))
-                addedsong = c.fetchall()[0]
-                print("Added song - " + addedsong[0])
-                songSelector()
-
             else:
-                print("invalid entry. Please check the song number you entered and try again.")
-                songSelector()
+                #try - used in case the user enters a value that is not int
+                try:
+                    if int(song) in validIDs:
+                        #checks if the song has already been added to the playlist
+                        if song in playlistSongs:
+                            print("you have already added this song to the playlist.")
+                            songSelector()
+                        #adds the song to the list and confirms the 'actual' song name to the user
+                        else:
+                            playlistSongs.append(song)
+                            c.execute("SELECT name FROM songs WHERE id=?", (song,))
+                            addedsong = c.fetchall()[0]
+                            print("Added song - " + addedsong[0])
+                            songSelector()
+                    #error handling
+                    else:
+                        print("invalid entry. Please check the song number you entered and try again.")
+                        songSelector()
+
+                except:
+                    print("invalid entry. Please check the song number you entered and try again.")
+                    songSelector()
+                    
+            
                 
         songSelector()
-        print("Here are the song numbers added to your playlist")
-        print(playlistSongs)
-        confirmation = input("Do you wish to save this playlist? ")
-        if confirmation = "yes":
+        #checks if the list is empty (eg. the user added no songs)
+        if not playlistSongs:
+            print("No songs were selected. Please try again.")
+            menu()
 
-        elif confirmation = 
         
+        else: 
+            print("Here are the song numbers added to your playlist")
+            print(playlistSongs)
+            confirmation = input("Do you wish to save this playlist? (enter 'y' or 'n') ")
+            if confirmation.upper() == "Y":
+                #write to db
+                c.execute('INSERT INTO playlists(name, username, songs) VALUES(?,?,?)', (playlistname, currentuser, str(playlistSongs)))
+                conn.commit()
+            else:
+                print("Playlist not saved.")
+                menu()
+            
         
     elif choice == "2":
         print("Your playlists:")
         c.execute("SELECT * FROM playlists WHERE username=?", (currentuser,))
         userPlaylistNames = []
-        userPlaylistIDs = []
         for row in c.fetchall():
             userPlaylistNames.append(row[1])
-            userPlaylistIDs.append(row[0])
-            print(row[1])
+            print(row) #[1]
         playlistChoice = input("Please enter the playlist name to view all songs: ")
+        if playlistChoice in userPlaylistNames:
+            c.execute("SELECT * FROM playlists WHERE name=? AND username=?", (playlistChoice, currentuser))
+            playlistResult = c.fetchall()[0]
+            print(playlistResult)
+            songs = playlistResult[3]
+            print(playlistResult[1])
+            print(songs)
+            #convert to list
+            print(songs[0])
         ###here needs finishing
+
+    elif choice == "3":
+        pass
+    
     else:
         print("Please select an option...")
         playlists()
