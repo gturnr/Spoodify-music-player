@@ -148,7 +148,7 @@ def playlists():
             print(str(row[0]) + ") " + row[1] + " - " + row[4] + " | " + row[2] + " | " +str(row[6]))
         print(" ")
         print("Please a song number and press enter. When you have entered every song you wish to add type 'done' and hit enter")
-        def songSelector():
+        def songSelector(): 
             song = input()
             if song == "done":
                 pass
