@@ -1,41 +1,53 @@
+#libraries needed - getpass 
 import sqlite3, getpass, os, time
 
 global currentuser
 
+#opens connection to server
 conn = sqlite3.connect('spoodify.db')
 c = conn.cursor()
 
 print("Spoodify - Music Streaming service")
 
+#creates all three sql tables required if not already made - songs, users and playlists
 c.execute('CREATE TABLE IF NOT EXISTS songs (id INTEGER PRIMARY KEY, name TEXT, artist TEXT, genre TEXT, album TEXT, length TEXT, year smallint)')
 c.execute('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, fullname TEXT, email TEXT, username TEXT, password TEXT)')
 c.execute('CREATE TABLE IF NOT EXISTS playlists (id INTEGER PRIMARY KEY, name TEXT, username TEXT, songs TEXT)')
+#apply changes to db
 conn.commit()
 
+#logout function
 def logout():
+    #confirms if the user wishes to sign out
     confirmation = input("Please confirm you want to logout(Y/N):")
     if confirmation.upper() == "Y":
+        #writes to the log file that the user has signed out
         logfile = open("log.txt", "a")
         logfile.write(time.strftime("%d/%m/%Y") + " | " + time.strftime("%H:%M:%S") + " - user " + currentuser + "signed out \n")
         logfile.close()
         cls()
         print("Logged out")
+        #returns user to greeting login page
         greeting()
     elif confirmation.upper() == "N":
+        #returns user to signed in menu
         cls()
         print("returning to menu...")
         menu()
+    #if the input is invalid it reruns the function
     else:
         cls()
         print("Please enter either Y or N")
         logout()
-        
+
+#when running the program in terminal the screen would clear (commented out temporarily)       
 def cls():
     #add linux & Mac OS support
     #os.system('cls')
     #os.system('clear')
     print(" ")
 
+#function run when a search is completed and no results are found
 def noResults():
     print(" ")
     print("Your search found no results! The search is case-sensitive.")
@@ -47,37 +59,47 @@ def noResults():
     else:
         noResults()
 
+#search song function
 def searchSongs():
     cls()
     choice = input("Do you want to 1) search for song title, 2) search for artist, or 3) search for album? ")
     if choice == "1":
+        #returns all results from the songs table where the song variable is the same as the the user input
         songName = input("Enter song name: ")
         c.execute("SELECT * FROM songs WHERE name=?", (songName,))
         results = c.fetchall()
+        #runs if the sqlite command returns no data
         if len(results) == 0:
             noResults()
+        #prints out all found song entries
         else:
             for row in results:
                 print(row[1] + " - " + row[4] + " | " + row[2] + " | " +str(row[6]))
             print(" ")
 
+    #returns all results from the songs table where the artist variable is the same as the the user input
     elif choice == "2":
         artistName = input("Enter artist name: ")
         c.execute("SELECT * FROM songs WHERE artist=?", (artistName,))
         results = c.fetchall()
+        #runs if the sqlite command returns no data
         if len(results) == 0:
             noResults()
+        #prints out all found song entries
         else:
             for row in results:
                 print(row[1] + " - " + row[4] + " | " + row[2] + " | " +str(row[6]))
             print(" ")
 
+    #returns all results from the songs table where the album variable is the same as the the user input
     elif choice == "3":
         albumName = input("Enter album name: ")
         c.execute("SELECT * FROM songs WHERE album=?", (albumName,))
         results = c.fetchall()
+        #runs if the sqlite command returns no data
         if len(results) == 0:
             noResults()
+        #prints out all found song entries
         else:
             for row in results:
                 print(row[1] + " - " + row[4] + " | " + row[2] + " | " +str(row[6]))
@@ -87,16 +109,52 @@ def searchSongs():
         searchSongs()
     menu()
 
+#playlists function
 def playlists():
     choice = input("Do you wish to 1) create a new playlist, or 2) view all your playlists? ")
     if choice == "1":
+        #gets a user to create a  playlist
         print("Create a playlist:")
+        def getPlaylistName():
+            playlistname = input("Please enter a playlist name: ")
+            ##########validate name!!!!
+            return playlistname
+        playlistname = getPlaylistName()
+        
+        #gets all songs from the songs table
         c.execute('SELECT * FROM songs ORDER BY id')
         songs = c.fetchall()
+        #prints out every song in the table, including the songs ID used for linking to the playlist table
+        validIDs = []
+        playlistSongs = []
         for row in songs:
-            print(row[0] + ") " + row[1] + " - " + row[4] + " | " + row[2] + " | " +str(row[6]))
+            validIDs.append(row[0])
+            print(str(row[0]) + ") " + row[1] + " - " + row[4] + " | " + row[2] + " | " +str(row[6]))
         print(" ")
         print("Please a song number and press enter. When you have entered every song you wish to add type 'done' and hit enter")
+        def songSelector():
+            print(validIDs)
+            song = input()
+            if song == "done":
+                pass
+            elif int(song) in validIDs:
+                playlistSongs.append(song)
+                c.execute("SELECT name FROM songs WHERE id=?", (song,))
+                addedsong = c.fetchall()[0]
+                print("Added song - " + addedsong[0])
+                songSelector()
+
+            else:
+                print("invalid entry. Please check the song number you entered and try again.")
+                songSelector()
+                
+        songSelector()
+        print("Here are the song numbers added to your playlist")
+        print(playlistSongs)
+        confirmation = input("Do you wish to save this playlist? ")
+        if confirmation = "yes":
+
+        elif confirmation = 
         
         
     elif choice == "2":
@@ -109,7 +167,7 @@ def playlists():
             userPlaylistIDs.append(row[0])
             print(row[1])
         playlistChoice = input("Please enter the playlist name to view all songs: ")
-        
+        ###here needs finishing
     else:
         print("Please select an option...")
         playlists()
@@ -245,6 +303,7 @@ def getPassword():
                 else:
                     return password
 
+#gets user email, and valdiates it by ensuring it contains an '@', a '.' and that the email is not already assigned to a user
 def getEmail():
         chosenemail = str(input("Please enter your chosen email: "))
         if '@' not in chosenemail or '.' not in chosenemail:
@@ -252,6 +311,7 @@ def getEmail():
             getEmail()
 
         else:
+            #gets all current emails in the users table, and checks if the new email is already stored in the table
             c.execute('SELECT email FROM users')
             currentemails = []
             for row in c.fetchall():
@@ -276,29 +336,39 @@ def signup():
     
     email = getEmail()
 
+    #gets username and validates it is unique against the db
     def getUsername():
         chosenusername = input("Please enter your chosen username: ")
+        #gets all current usernames
         c.execute('SELECT username FROM users')
         currentusers = []
+        #adds all current users to a local list
         for row in c.fetchall():
             currentusers.append(row[0])
+        #checks if the chosen username is already in the list
         if chosenusername in currentusers:
             print("Username is taken")
             getUsername()    
         return chosenusername
+    
     username = getUsername()
     ###
     password = getPassword()
-    print(password)
+    #creates a list containing the new users inputted data
     new_user = [name, email, username, password]
+    #writes the user to the table
     c.execute('INSERT INTO users(fullname, email, username, password) VALUES(?,?,?,?)', (name, email, username, password))
     conn.commit()
+    #assigns the new users username to the global current user variable
     currentuser = username
+    #writes to the log file that a new user has been created
     logfile = open("log.txt", "a")
     logfile.write(time.strftime(time.strftime("%d/%m/%Y") + " | " + "%H:%M:%S") + " - user " + currentuser + "registered successfully \n")
     logfile.close()
+    #takes the new user to the logged in menu
     menu()
-    
+
+#funcrtion ran on startup, sign in/sign up input
 def greeting(): 
     loginchoice = str(input("Would you like to login (1) or sign up (2): "))
     if loginchoice == "1":
@@ -310,4 +380,5 @@ def greeting():
         greeting()
 
 greeting()
+#closes connection to db
 conn.close()
