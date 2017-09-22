@@ -1,6 +1,5 @@
 #libraries needed - getpass 
-import sqlite3, getpass, os, time
-
+import sqlite3, getpass, os, time, ast
 global currentuser
 
 #opens connection to server
@@ -175,8 +174,6 @@ def playlists():
                 except:
                     print("invalid entry. Please check the song number you entered and try again.")
                     songSelector()
-                    
-            
                 
         songSelector()
         #checks if the list is empty (eg. the user added no songs)
@@ -184,7 +181,6 @@ def playlists():
             print("No songs were selected. Please try again.")
             menu()
 
-        
         else: 
             print("Here are the song numbers added to your playlist")
             print(playlistSongs)
@@ -196,7 +192,6 @@ def playlists():
             else:
                 print("Playlist not saved.")
                 menu()
-            
         
     elif choice == "2":
         print("Your playlists:")
@@ -204,19 +199,31 @@ def playlists():
         userPlaylistNames = []
         for row in c.fetchall():
             userPlaylistNames.append(row[1])
-            print(row) #[1]
+            print(str(row[0]) + ") " + row[1])
+            
         playlistChoice = input("Please enter the playlist name to view all songs: ")
         if playlistChoice in userPlaylistNames:
             c.execute("SELECT * FROM playlists WHERE name=? AND username=?", (playlistChoice, currentuser))
             playlistResult = c.fetchall()[0]
-            print(playlistResult)
+            print("")
+            print("Playlist - " + playlistResult[1])
+            #convert string output to list
             songs = playlistResult[3]
-            print(playlistResult[1])
-            print(songs)
-            #convert to list
-            print(songs[0])
-        ###here needs finishing
+            songs = ast.literal_eval(songs)
+            songs = [i.strip() for i in songs]
+            print("")
+            print("Songs:")
+            print("")
+            for i in songs:
+                c.execute("SELECT * FROM songs WHERE id=?", (i,))
+                data = c.fetchall()[0]
+                #print(data)
+                print(str(data[0]) + ") " + data[1] + " - " + data[4] + " | " + data[2] + " | " +str(data[6]))
 
+        else:
+            print("A playlist with that name could not be found on your account.")
+            playlists()
+            
     elif choice == "3":
         pass
     
@@ -404,7 +411,6 @@ def signup():
         return chosenusername
     
     username = getUsername()
-    ###
     password = getPassword()
     #creates a list containing the new users inputted data
     new_user = [name, email, username, password]
