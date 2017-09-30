@@ -1,18 +1,5 @@
-#libraries needed - getpasshttps://www.youtube.com/watch?v=WU9DzMhdeEo
 import sqlite3, getpass, os, time, ast
 global currentuser
-
-'''
-import subprocess
-audio_file = "test.mp3"
-
-t_end = time.time() + 10
-while time.time() < t_end:
-    print(time.time())
-    subprocess.call(["afplay", audio_file])
-
-os.system("killall afplay")
-'''
 
 #opens connection to server
 conn = sqlite3.connect('spoodify.db')
@@ -292,11 +279,35 @@ def menu():
     if option == "1":
         cls()
         print("songs in our collection: ")
-        c.execute('SELECT * FROM songs ORDER BY artist')
+        c.execute('SELECT * FROM songs ORDER BY id')
         songs = c.fetchall()
+        songIDs = []
         for row in songs:
-            print(row[1] + " - " + row[4] + " | " + row[2] + " | " +str(row[6]))
+            print(str(row[0]) + ") " + row[1] + " - " + row[4] + " | " + row[2] + " | " +str(row[6]))
+            songIDs.append(row[0])
         print(" ")
+        #
+        playSong = input("Would you like to play a song? ")
+        if playSong.upper() == 'YES':
+            songNumber  = input("Please enter a song number to play: ")
+            try:
+                if int(songNumber) in songIDs:
+                    c.execute('SELECT name,artist FROM songs WHERE id = ?', (songNumber,))
+                    song = c.fetchall()[0]
+                    print(song)
+                    f = open('songLoader.txt', 'w')
+                    f.write(song[0] + ', ' + song[1])
+                    f.close()
+                    import musicPlayer
+
+                else:
+                    print("Invalid song number")
+            except:
+                print("Invalid song number")
+
+        else:
+            pass
+        
         menu()
     elif option == "2":
         searchSongs()
