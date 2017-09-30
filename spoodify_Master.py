@@ -1,6 +1,9 @@
 import sqlite3, getpass, os, time, ast
 global currentuser
 
+###DEBUG MODE - AUTOSIGNIN
+debug = True
+
 #opens connection to server
 conn = sqlite3.connect('spoodify.db')
 c = conn.cursor()
@@ -266,6 +269,13 @@ def settings():
         settings()
     menu()
 
+def playSong(songName, artistName):
+    print('playing song')
+    f = open('songLoader.txt', 'w')
+    f.write(songName + ', ' + artistName)
+    f.close()
+    import musicPlayer
+
 def menu():
     print(" ")
     print(currentuser + " - Please select the service you would like:")
@@ -287,23 +297,20 @@ def menu():
             songIDs.append(row[0])
         print(" ")
         #
-        playSong = input("Would you like to play a song? ")
-        if playSong.upper() == 'YES':
+        choice = input("Would you like to play a song? ")
+        if choice.upper() == 'YES':
             songNumber  = input("Please enter a song number to play: ")
-            try:
-                if int(songNumber) in songIDs:
-                    c.execute('SELECT name,artist FROM songs WHERE id = ?', (songNumber,))
-                    song = c.fetchall()[0]
-                    print(song)
-                    f = open('songLoader.txt', 'w')
-                    f.write(song[0] + ', ' + song[1])
-                    f.close()
-                    import musicPlayer
+            #try:
+            if int(songNumber) in songIDs:
+                c.execute('SELECT name,artist FROM songs WHERE id = ?', (songNumber,))
+                song = c.fetchall()[0]
+                playSong(song[0], song[1])
+                    
 
-                else:
-                    print("Invalid song number")
-            except:
+            else:
                 print("Invalid song number")
+           # except:
+            #    pass
 
         else:
             pass
@@ -460,6 +467,11 @@ def greeting():
         cls()
         greeting()
 
-greeting()
+if debug == True:
+    currentuser = 'GuyTurner797'
+    menu()
+
+else:
+    greeting()
 #closes connection to db
 conn.close()
