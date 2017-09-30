@@ -1,6 +1,18 @@
-#libraries needed - getpass 
+#libraries needed - getpasshttps://www.youtube.com/watch?v=WU9DzMhdeEo
 import sqlite3, getpass, os, time, ast
 global currentuser
+
+'''
+import subprocess
+audio_file = "test.mp3"
+
+t_end = time.time() + 10
+while time.time() < t_end:
+    print(time.time())
+    subprocess.call(["afplay", audio_file])
+
+os.system("killall afplay")
+'''
 
 #opens connection to server
 conn = sqlite3.connect('spoodify.db')
