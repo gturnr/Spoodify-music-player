@@ -1,0 +1,174 @@
+import pygame, spotipy, io, urllib.request, time
+from spotipy.oauth2 import SpotifyClientCredentials
+from mutagen.mp3 import MP3
+
+#read song to play
+f = open('songLoader.txt', 'r')
+song = f.read().rstrip()
+f.close()
+print(song)
+songName, artistName = song.split(', ')
+
+filename = "images/albums/" + song + '.jpg'
+songPath = 'music/' + songName + '.mp3'
+
+try:
+    f = open(filename, 'r')
+    albumImage = filename
+except:
+    #initialize spotipy connection with Oauth
+    client_credentials_manager = SpotifyClientCredentials(client_id='8b1f86a793164a1e87f6ddc455a48b98', client_secret='82f524e32888446980ff8115236f9471')
+    sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+
+    #spotify get album url
+    results = sp.search(q=(songName + " " + artistName), limit=1)
+    albumUrl = results['tracks']['items'][0]['album']['images'][0]['url']
+
+    image = urllib.request.urlopen(albumUrl).read()
+    f = open(filename,'wb')
+    f.write(image)
+    f.close()
+    
+    #image_str = urlopen(albumUrl).read()
+    #albumImage = io.BytesIO(image_str)
+    albumImage = filename
+
+#initialize pygame and pygame music mixer
+pygame.init()
+pygame.mixer.init()
+pygame.font.init()
+
+#fonts
+font = pygame.font.SysFont('Arial', 30)
+boldfont = pygame.font.SysFont('Arial', 50)
+
+#define colours
+white = (255,255,255)
+black = (0,0,0)
+red = (255,0,0)
+
+#define window size
+display_width = 600
+display_height = 800
+
+#define pygame window characteristics
+gameDisplay = pygame.display.set_mode((display_width,display_height))
+
+pygame.display.set_caption('Music Player')
+clock = pygame.time.Clock()
+
+#images
+albumCover = pygame.image.load(albumImage)
+albumCover = pygame.transform.scale(albumCover, (600, 600))
+volUpImg = pygame.image.load('images/volup.png')
+volUpImg = pygame.transform.scale(volUpImg, (100, 100))
+volDownImg = pygame.image.load('images/voldown.png')
+volDownImg = pygame.transform.scale(volDownImg, (100, 100))
+playPauseImg = pygame.image.load('images/playpause.png')
+playPauseImg = pygame.transform.scale(playPauseImg, (100, 100))
+
+#load pygame mixer audio
+mutagenData = MP3(songPath)
+songLength = mutagenData.info.length
+songLengthMinutes = round(songLength / 60, 2)
+print('length - ' + str(songLengthMinutes))
+
+
+pygame.mixer.music.load(songPath)
+pygame.mixer.music.set_volume(0.5)
+pygame.mixer.music.play()
+global paused, lastpaused
+paused = False
+lastpaused = time.time()
+
+def volUp():
+    volume = pygame.mixer.music.get_volume()
+    if volume < 1:
+        volume += 0.01
+        pygame.mixer.music.set_volume(volume)
+    
+
+def volDown():
+    volume = pygame.mixer.music.get_volume()
+    if volume > 0:
+        volume -= 0.01
+        pygame.mixer.music.set_volume(volume)
+        
+
+
+
+def playPause():
+    global paused, lastpaused
+    currenttime = time.time()
+    timeSpace = currenttime - lastpaused
+    if timeSpace > 0.5: 
+        if paused == False:
+            print("Paused")
+            pygame.mixer.music.pause()
+            paused = True
+            
+        elif paused == True:
+            print("Unpaused")
+            pygame.mixer.music.unpause()
+            paused = False
+    lastpaused = time.time()
+        
+    
+
+def button(x,y,img, funcName):
+    gameDisplay.blit(img, (x,y))
+    mouse = pygame.mouse.get_pos()
+    click = pygame.mouse.get_pressed()
+
+    if x+100 > mouse[0] > x and y+100 > mouse[1] > y:
+        if click[0] == 1:
+            funcName()
+            
+    
+
+gameExit = False
+counter = 0
+
+while not gameExit:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            gameExit = True
+
+    if paused == False:
+        counter += 3
+        
+    if counter  >= songLength*60:
+        gameExit = True
+
+    songTitle = boldfont.render(songName, True, black)
+    artistTitle = boldfont.render(artistName, True, black)
+    volume = font.render(str(int(pygame.mixer.music.get_volume()*100)) + "%", True, black)
+
+    if paused == True:
+        playback = 'Paused'
+    elif paused == False:
+        playback = str(int(counter*0.02)) + " / " + str(int(songLength)) + " Seconds"
+    
+    playbackState = font.render(playback, True, black)
+    
+    #define gameDisplay layout
+    gameDisplay.fill(black)
+    pygame.draw.rect(gameDisplay, white, [000,600,600,200])
+    gameDisplay.blit(albumCover, (0,0))
+    
+    gameDisplay.blit(songTitle, ((display_width /2) - (songTitle.get_width() / 2), display_height - 200))
+    gameDisplay.blit(artistTitle, ((display_width /2) - (artistTitle.get_width() / 2), display_height - 150))
+    
+    gameDisplay.blit(volume, ((display_width /2) - (volume.get_width() / 2), display_height - 40))
+    gameDisplay.blit(playbackState, ((display_width /2) - (playbackState.get_width() / 2), display_height - 80))
+                     
+    button(500, 700, volUpImg, volUp)
+    button(400, 700, volDownImg, volDown)
+    button(30, 700, playPauseImg, playPause)
+    pygame.display.update()
+    clock.tick(20)
+
+
+
+pygame.quit()
+quit()

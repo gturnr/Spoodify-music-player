@@ -1,4 +1,4 @@
-import sqlite3, getpass, os, time, ast
+import sqlite3, getpass, os, time, ast, musicPlayer
 global currentuser
 
 ###DEBUG MODE - AUTOSIGNIN
@@ -216,24 +216,38 @@ def playlists():
             print("")
             print("Songs:")
             print("")
+            
+            playlist = []
+
             for i in songs:
                 c.execute("SELECT * FROM songs WHERE id=?", (i,))
                 data = c.fetchall()[0]
-                #print(data)
                 print(str(data[0]) + ") " + data[1] + " - " + data[4] + " | " + data[2] + " | " +str(data[6]))
+                currentSong = []
+                currentSong.append(data[1])
+                currentSong.append(data[2])
+                playlist.append(currentSong)
+
+            playPlaylist = input("Would you like to play all songs in the playlist? ")
+
+            if playPlaylist.upper() == "YES":
+                for song in playlist:
+                    musicPlayer.playSong(song[0], song[1])
+                    
+            menu()
 
         else:
             print("A playlist with that name could not be found on your account.")
             playlists()
-            
+		
     elif choice == "3":
         pass
     
     else:
         print("Please select an option...")
         playlists()
-    menu()
-
+        menu()
+	
 def settings():
     print("Account options:")
     print("1) Change your password")
@@ -269,13 +283,6 @@ def settings():
         settings()
     menu()
 
-def playSong(songName, artistName):
-    print('playing song')
-    f = open('songLoader.txt', 'w')
-    f.write(songName + ', ' + artistName)
-    f.close()
-    import musicPlayer
-
 def menu():
     print(" ")
     print(currentuser + " - Please select the service you would like:")
@@ -304,7 +311,8 @@ def menu():
             if int(songNumber) in songIDs:
                 c.execute('SELECT name,artist FROM songs WHERE id = ?', (songNumber,))
                 song = c.fetchall()[0]
-                playSong(song[0], song[1])
+
+                musicPlayer.playSong(song[0], song[1])
                     
 
             else:
