@@ -11,7 +11,7 @@ c = conn.cursor()
 print("Spoodify - Music Streaming service")
 
 #creates all three sql tables required if not already made - songs, users and playlists
-c.execute('CREATE TABLE IF NOT EXISTS songs (id INTEGER PRIMARY KEY, name TEXT, artist TEXT, genre TEXT, album TEXT, length TEXT, year smallint)')
+c.execute('CREATE TABLE IF NOT EXISTS songs (id INTEGER PRIMARY KEY, name TEXT, artist TEXT, genre TEXT, album TEXT, length TEXT, year smallint, hits INT)')
 c.execute('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, fullname TEXT, email TEXT, username TEXT, password TEXT)')
 c.execute('CREATE TABLE IF NOT EXISTS playlists (id INTEGER PRIMARY KEY, name TEXT, username TEXT, songs TEXT)')
 #apply changes to db
@@ -232,7 +232,7 @@ def playlists():
 
             if playPlaylist.upper() == "YES":
                 for song in playlist:
-                    musicPlayer.playSong(song[0], song[1])
+                    musicPlayer.playSong(song[0], song[1], c, conn)
                     
             menu()
 
@@ -300,7 +300,7 @@ def menu():
         songs = c.fetchall()
         songIDs = []
         for row in songs:
-            print(str(row[0]) + ") " + row[1] + " - " + row[4] + " | " + row[2] + " | " +str(row[6]))
+            print(str(row[0]) + ") " + row[1] + " - " + row[4] + " | " + row[2] + " | " +str(row[6]) + " | Hits: " + str(row[7]))
             songIDs.append(row[0])
         print(" ")
         #
@@ -312,7 +312,7 @@ def menu():
                 c.execute('SELECT name,artist FROM songs WHERE id = ?', (songNumber,))
                 song = c.fetchall()[0]
 
-                musicPlayer.playSong(song[0], song[1])
+                musicPlayer.playSong(song[0], song[1], c, conn)
                     
 
             else:
