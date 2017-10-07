@@ -5,12 +5,16 @@ from mutagen.mp3 import MP3
 global volume
 volume = 0.5
 
-def playSong(songName, artistName, c, conn):
+def playSong(songID, c, conn):
         global volume
-        c.execute("SELECT hits FROM songs WHERE name=?", (songName,))
-        currentHits = c.fetchall()[0]
-        c.execute('UPDATE songs SET hits = ? WHERE name = ?', (currentHits[0] + 1, songName,))
-        print(currentHits[0] + 1)
+        c.execute("SELECT * FROM songs WHERE id=?", (songID,))
+        songLookup = c.fetchall()[0]
+        songName = songLookup[1]
+        artistName = songLookup[2]
+        
+        currentHits = songLookup[7]
+        c.execute('UPDATE songs SET hits = ? WHERE name = ?', (currentHits + 1, songName,))
+        print(currentHits + 1)
         conn.commit()
 
         #initialize pygame and pygame music mixer
