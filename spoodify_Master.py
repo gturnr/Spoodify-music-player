@@ -1,4 +1,4 @@
-import sqlite3, getpass, os, time, ast, musicPlayer
+import sqlite3, getpass, os, time, ast, hashlib, musicPlayer
 global currentuser
 
 ###DEBUG MODE - AUTOSIGNIN
@@ -223,16 +223,13 @@ def playlists():
                 c.execute("SELECT * FROM songs WHERE id=?", (i,))
                 data = c.fetchall()[0]
                 print(str(data[0]) + ") " + data[1] + " - " + data[4] + " | " + data[2] + " | " +str(data[6]))
-                currentSong = []
-                currentSong.append(data[1])
-                currentSong.append(data[2])
-                playlist.append(currentSong)
+                playlist.append(data[0])
 
             playPlaylist = input("Would you like to play all songs in the playlist? ")
 
             if playPlaylist.upper() == "YES":
-                for song in playlist:
-                    musicPlayer.playSong(song[0], song[1], c, conn)
+                for songID in playlist:
+                    musicPlayer.playSong(songID, c, conn)
                     
             menu()
 
@@ -255,7 +252,11 @@ def settings():
     print("3) Return to main menu")
     choice = input()
     if choice == "1":
-        usercheck = input("Please enter your current password: ")
+        usercheck = getpass.getpass("Please enter your current password: ")
+        usercheck = "M4Zd" + usercheck + "2k9"
+        h = hashlib.md5(usercheck.encode())
+        usercheck =h.hexdigest()
+        
         c.execute("SELECT password FROM users WHERE username=?", (currentuser,))
         currentPassword = c.fetchall()[0]
         if usercheck == currentPassword[0]:
@@ -307,18 +308,15 @@ def menu():
         choice = input("Would you like to play a song? ")
         if choice.upper() == 'YES':
             songNumber  = input("Please enter a song number to play: ")
-            #try:
-            if int(songNumber) in songIDs:
-                c.execute('SELECT name,artist FROM songs WHERE id = ?', (songNumber,))
-                song = c.fetchall()[0]
+            try:
+                if int(songNumber) in songIDs:
+                    musicPlayer.playSong(songNumber, c, conn)
+                        
 
-                musicPlayer.playSong(song[0], song[1], c, conn)
-                    
-
-            else:
-                print("Invalid song number")
-           # except:
-            #    pass
+                else:
+                    print("Invalid song number")
+            except:
+                pass
 
         else:
             pass
@@ -341,6 +339,9 @@ def login():
     global currentuser
     username = input("Please enter your username: ")
     password = getpass.getpass("Please enter your password: ")
+    password = "M4Zd" + password + "2k9"
+    h = hashlib.md5(password.encode())
+    passwordHash =h.hexdigest()
     c.execute('SELECT username FROM users')
     currentusers = []
     for row in c.fetchall():
@@ -350,7 +351,7 @@ def login():
         c.execute("SELECT password FROM users WHERE username=?", (username,))
         searchResult = c.fetchall()
         validatePswd = searchResult[0]
-        if password == validatePswd[0]:
+        if passwordHash == validatePswd[0]:
             currentuser = username
             logfile = open("log.txt", "a")
             logfile.write(time.strftime("%d/%m/%Y") + " | " + time.strftime("%H:%M:%S") + " - user " + currentuser + "signed in \n")
@@ -398,7 +399,12 @@ def getPassword():
                     print("Passwords do not match")
                     getPassword()
                 else:
-                    return password
+                    
+                    password = "M4Zd" + password + "2k9"
+                    h = hashlib.md5(password.encode())
+                    passwordHash =h.hexdigest()
+                    
+                    return passwordHash
 
 #gets user email, and valdiates it by ensuring it contains an '@', a '.' and that the email is not already assigned to a user
 def getEmail():
