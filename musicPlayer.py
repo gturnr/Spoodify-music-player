@@ -2,8 +2,11 @@ import pygame, spotipy, io, urllib.request, time, traceback
 from spotipy.oauth2 import SpotifyClientCredentials
 from mutagen.mp3 import MP3
 
+
 global volume
 volume = 0.5
+
+
 
 def playSong(songID, c, conn):
         global volume
@@ -51,6 +54,7 @@ def playSong(songID, c, conn):
         fastforwardImg = pygame.transform.scale(fastforwardImg, (100, 100))
         rewindImg = pygame.image.load('images/rewind.png')
         rewindImg = pygame.transform.scale(rewindImg, (100, 100))
+
 
         song = songName  + ', ' + artistName
 

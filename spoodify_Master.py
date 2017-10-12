@@ -1,4 +1,4 @@
-import sqlite3, getpass, os, time, ast, hashlib, musicPlayer
+import sqlite3, getpass, os, time, ast, hashlib#, musicPlayer
 global currentuser
 
 
@@ -7,8 +7,13 @@ global currentuser
 debug = True
 
 #opens connection to server
+global c, conn
 conn = sqlite3.connect('spoodify.db')
 c = conn.cursor()
+
+
+
+import musicPlayerQueue
 
 print("Spoodify - Music Streaming service")
 
