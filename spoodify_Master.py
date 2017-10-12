@@ -112,7 +112,7 @@ def searchSongs():
 
 #playlists function
 def playlists():
-    choice = input("Do you wish to 1) create a new playlist, 2) view all your playlists, or 3) return to menu? ")
+    choice = input("Do you wish to 1) create a new playlist, 2) view all your playlists, 3) edit a playlist, or 4) return to menu? ")
     if choice == "1":
         #gets a user to create a  playlist
         print("Create a playlist:")
@@ -236,14 +236,113 @@ def playlists():
         else:
             print("A playlist with that name could not be found on your account.")
             playlists()
-		
+
     elif choice == "3":
+        print("Edit a playlist:")
+        c.execute("SELECT * FROM playlists WHERE username=?", (currentuser,))
+        userPlaylistNames = []
+        for row in c.fetchall():
+            userPlaylistNames.append(row[1])
+            print(str(row[0]) + ") " + row[1])
+            
+        playlistChoice = input("Please enter the name of the playlist you wish to edit: ")
+
+        if playlistChoice in userPlaylistNames:
+            c.execute("SELECT * FROM playlists WHERE name=? AND username=?", (playlistChoice, currentuser))
+            playlistResult = c.fetchall()[0]
+            #convert string output to list
+            songs = playlistResult[3]
+            songs = ast.literal_eval(songs)
+            songs = [i.strip() for i in songs]
+            print("")
+            print("Songs:")
+
+            playlist = []
+
+            for i in songs:
+                c.execute("SELECT * FROM songs WHERE id=?", (i,))
+                data = c.fetchall()[0]
+                print(str(data[0]) + ") " + data[1] + " - " + data[4] + " | " + data[2] + " | " +str(data[6]))
+                playlist.append(data[0])
+
+            print("")
+
+        else:
+            print("Please enter one of the above playlist names")
+            playlists()
+
+
+        def choiceSelection():
+            choice = input("Would you like to 1) Remove a song, 2) Add a song, or 3) are you done? ")
+            if choice == "1":
+                songID = input("please enter the song number of the song you wish to remove: ")
+                if songID in songs:
+                    songs.remove(songID)
+                    print(songs)
+
+            elif choice == "2":
+                c.execute('SELECT * FROM songs ORDER BY id')
+                validSongs = c.fetchall()
+                validIDs = []
+
+                for row in validSongs:
+                    validIDs.append(row[0])
+
+                songToAdd = input("please enter the song number of the song you wish to add: ")
+
+                try:
+                    if int(songToAdd) in validIDs:
+                        if songToAdd not in songs:
+                            c.execute("SELECT name FROM songs WHERE id=?", (int(songToAdd),))
+                            songName = c.fetchall()[0]
+                            print("Added song " + str(songName[0]))
+                            songs.append(songToAdd)
+                        else:
+                            print("Song already in playlist")
+
+                    else:
+                        print("Please enter a valid song number.")
+
+                except:
+                    print("Please enter a valid song number")
+
+            elif choice == "3":
+                print(" ")
+                print("New songs in playlist: ")
+                if len(songs) == 0:
+                    print("Cannot save a playlist with 0 songs. to delete a playlist please use the delete playlist option from the main menu.")
+                    menu()
+                else:
+                    for i in songs:
+                        c.execute("SELECT * FROM songs WHERE id=?", (i,))
+                        data = c.fetchall()[0]
+                        print(str(data[0]) + ") " + data[1] + " - " + data[4] + " | " + data[2] + " | " +str(data[6]))
+                        playlist.append(data[0])
+
+                    saveChoice = input("Would you like to update the playlist? ")
+                    if saveChoice.upper() == "YES":
+                        print("Saving to DB")
+                        c.execute('UPDATE playlists SET songs = ? WHERE name = ?', (str(songs), playlistChoice))
+                        conn.commit()
+                        menu()
+
+                    elif saveChoice.upper() == "NO":
+                        print("Playlist edit cancelled. Returning to menu")
+                        menu()
+
+                    else:
+                        print("please enter either yes or no.")
+
+            choiceSelection()
+
+        choiceSelection()
+
+    elif choice == "4":
         pass
     
     else:
         print("Please select an option...")
         playlists()
-        menu()
 	
 def settings():
     print("Account options:")
@@ -363,7 +462,6 @@ def login():
     else:
         print("Invalid login, please try again or signup")
         greeting()
-        
 
 def getPassword():
     password = getpass.getpass("Please enter your chosen password, must contain a number, symbol and 8 characters: ")

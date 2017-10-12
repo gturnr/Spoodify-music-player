@@ -1,4 +1,4 @@
-import pygame, spotipy, io, urllib.request, time
+import pygame, spotipy, io, urllib.request, time, traceback
 from spotipy.oauth2 import SpotifyClientCredentials
 from mutagen.mp3 import MP3
 
@@ -62,20 +62,25 @@ def playSong(songID, c, conn):
                 f.close()
                 albumImage = filename
         except:
-                #initialize spotipy connection with Oauth
-                client_credentials_manager = SpotifyClientCredentials(client_id='8b1f86a793164a1e87f6ddc455a48b98', client_secret='82f524e32888446980ff8115236f9471')
-                sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+                try:
+                        #initialize spotipy connection with Oauth
+                        client_credentials_manager = SpotifyClientCredentials(client_id='8b1f86a793164a1e87f6ddc455a48b98', client_secret='82f524e32888446980ff8115236f9471')
+                        sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
-                #spotify get album url
-                results = sp.search(q=(songName + " " + artistName), limit=1)
-                albumUrl = results['tracks']['items'][0]['album']['images'][0]['url']
+                        #spotify get album url
+                        results = sp.search(q=(songName + " " + artistName), limit=1)
+                        albumUrl = results['tracks']['items'][0]['album']['images'][0]['url']
 
-                image = urllib.request.urlopen(albumUrl).read()
-                f = open(filename,'wb')
-                f.write(image)
-                f.close()
+                        #gets the album cover for the song and downloads it for future use
+                        image = urllib.request.urlopen(albumUrl).read()
+                        f = open(filename,'wb')
+                        f.write(image)
+                        f.close()
 
-                albumImage = filename
+                        albumImage = filename
+                except:
+                        #if a local file and spotify fails, a default album cover is used
+                        albumImage = "images/albumcover.png"
                 
         #images
         albumCover = pygame.image.load(albumImage)
@@ -130,7 +135,7 @@ def playSong(songID, c, conn):
                 global counter
                 pygame.mixer.music.set_pos(1)
                 counter += 1/0.02
-                counter -= 2.9
+                counter -= 3
                 
         def rewind():
                 global counter
@@ -168,7 +173,7 @@ def playSong(songID, c, conn):
                 gameDisplay.blit(artistTitle, ((display_width /2) - (artistTitle.get_width() / 2), display_height - 150))
 
                 if paused == False:
-                        counter += 2.9
+                        counter += 3
 
                 if pygame.mixer.music.get_busy() == False:
                         gameExit = True
