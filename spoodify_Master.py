@@ -1,6 +1,8 @@
 import sqlite3, getpass, os, time, ast, hashlib, musicPlayer
 global currentuser
 
+
+
 ###DEBUG MODE - AUTOSIGNIN
 debug = True
 
