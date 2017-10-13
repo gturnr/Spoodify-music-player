@@ -1,0 +1,44 @@
+
+datatypes:
+
+	character 
+	string - composite datatype
+	boolean
+	float,real
+
+when defining variables we can use implicit or explicit casting (defining datatype)
+implicit = indirect, explicit = direct
+
+compound datatypes
+	Arrays
+	Dictionaries
+	Lists
+
+ONLY ONE DATATYPE
+
+Subroutines and functions - a function is a subroutine is something that returns something
+
+String operations:
+	concatenate - combine strings
+	split
+	length
+	upper,lower
+
+interger operators
+	trunc and rounding
+	maths operators
+	mod = remainder of division
+	div = number of whole times a number can fit into another number
+
+cases - like if statements
+	switch case, 
+
+
+nesting
+
+
+pseudo code
+
+<> not equal
+= or == equals
+-> assigning variables
