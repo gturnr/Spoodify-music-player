@@ -68,7 +68,7 @@ def playSong(songID, c, conn):
         except:
                 try:
                         #initialize spotipy connection with Oauth
-                        client_credentials_manager = SpotifyClientCredentials(client_id='8b1f86a793164a1e87f6ddc455a48b98', client_secret='82f524e32888446980ff8115236f9471')
+                        client_credentials_manager = SpotifyClientCredentials(client_id='ID', client_secret='SECRET')
                         sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
                         #spotify get album url
