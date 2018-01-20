@@ -2,7 +2,7 @@
 
 A python project using databases and PyGame to create a music player à la Spotify.
 
-![Music Player Window](https://imgur.com/a/bPuML)
+![Music Player Window](https://i.imgur.com/TW1ESdf.jpg)
 
 Requirements:
 - PyGame
